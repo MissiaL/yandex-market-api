@@ -1,6 +1,6 @@
 ---
 name: yandex-market-api
-description: Use whenever the user wants to interact with Yandex Market (Яндекс Маркет) as a seller — managing the product catalog (карточки, offer-mappings), prices, stocks (остатки), orders (заказы FBS/FBY/DBS/Express), shipments (отгрузки), returns (возвраты), supply requests, promos (акции), bids (ставки продвижения), reports (отчёты), outlets (точки продаж), chats with buyers, goods feedback (отзывы), Q&A, hidden offers, tariffs, or any other Yandex Market Partner API endpoint. Trigger on phrases like "Yandex Market API", "API Яндекс Маркета", "партнёрский API маркета", "заказы на маркете", "остатки на маркете", "businessId", "campaignId", or any URL under api.partner.market.yandex.ru. The skill bundles the full official OpenAPI 3.0 spec (159 operations, ~40 sections) and a lookup tool — use it instead of guessing paths or schemas, even for endpoints that look obvious.
+description: Use when the user works with Yandex Market (Яндекс Маркет) as a seller via API — карточки каталога, цены, остатки, заказы FBS/FBY/DBS/Express, отгрузки, возвраты, акции, ставки, отчёты, чаты, отзывы. Triggers: "Yandex Market API", "API Яндекс Маркета", "заказы/остатки на маркете", "businessId", "campaignId", api.partner.market.yandex.ru.
 ---
 
 # Yandex Market Partner API
