@@ -1,6 +1,6 @@
 # Yandex Market Partner API — индекс категорий
 
-Источник: официальный репозиторий `github.com/yandex-market/yandex-market-partner-api`. Полный спек: [yandex-market-openapi.json](./yandex-market-openapi.json) (~1.3 МБ, 149 путей / 159 операций).
+Источник: официальный репозиторий `github.com/yandex-market/yandex-market-partner-api`. Полный спек: [yandex-market-openapi.json](./yandex-market-openapi.json) (~1.4 МБ, 155 путей / 165 операций).
 
 **Не читай OpenAPI целиком.** Используй `scripts/lookup_endpoint.py` (`tags`/`search`/`show`).
 
@@ -8,7 +8,7 @@
 
 Категории отсортированы по числу эндпоинтов.
 
-## reports (26)
+## reports (27)
 
 - `POST   /v1/businesses/{businessId}/reports/marketing-detalization/generate` — Отчет по счету маркетинга [fby,dbs,fbs,express,laas]
 - `POST   /v1/reports/documents/barcodes/generate` — Получение файла со штрихкодами [fby,laas]
@@ -36,6 +36,7 @@
 - `POST   /v2/reports/united-netting/generate` — Отчет по платежам [fby,dbs,fbs,express]
 - `POST   /v2/reports/united-orders/generate` — Отчет по заказам [fby,fbs,dbs,express]
 - `POST   /v2/reports/united-returns/generate` — Отчет по невыкупам и возвратам [fby,fbs,dbs,express,laas]
+- `POST   /v3/businesses/{businessId}/reports/stocks/generate` — Отчет по остаткам на складах партнера [fbs,dbs,express]
 
 ## orders (16)
 
@@ -102,13 +103,23 @@
 - `POST   /v2/businesses/{businessId}/offer-mappings/unarchive` — Удаление товаров из архива [dbs,fby,fbs,express]
 - `POST   /v2/businesses/{businessId}/offer-mappings/update` — Добавление товаров в каталог и изменение информации о них [dbs,fby,fbs,express,laas]
 
-## goods-feedback (5)
+## goods-feedback (6)
 
+- `POST   /v1/businesses/{businessId}/goods-feedback-advertiser` — Получение отзывов о товарах для рекламодателей [fby,fbs,dbs,express]
 - `POST   /v2/businesses/{businessId}/goods-feedback` — Получение отзывов о товарах продавца [fby,fbs,dbs,express]
 - `POST   /v2/businesses/{businessId}/goods-feedback/comments` — Получение комментариев к отзыву [fby,fbs,dbs,express]
 - `POST   /v2/businesses/{businessId}/goods-feedback/comments/delete` — Удаление комментария к отзыву [fby,fbs,dbs,express]
 - `POST   /v2/businesses/{businessId}/goods-feedback/comments/update` — Добавление нового или изменение созданного комментария [fby,fbs,dbs,express]
 - `POST   /v2/businesses/{businessId}/goods-feedback/skip-reaction` — Пропуск реакции на отзывы [fby,fbs,dbs,express]
+
+## warehouses (6)
+
+- `GET    /v2/businesses/{businessId}/warehouses` — Список складов и групп складов [fbs,dbs,express] ⚠️ deprecated
+- `POST   /v2/businesses/{businessId}/warehouses` — Список складов [fbs,dbs,express]
+- `POST   /v2/campaigns/{campaignId}/warehouse/status` — Изменение статуса склада [fbs,dbs,express] ⚠️ deprecated
+- `GET    /v2/warehouses` — Идентификаторы фулфилмент-складов Маркета [fby,laas]
+- `POST   /v3/businesses/{businessId}/warehouse/models/status` — Включение/выключение модели работы склада [fbs,dbs,express]
+- `POST   /v3/businesses/{businessId}/warehouses` — Список складов [fbs,dbs,express]
 
 ## order-delivery (5)
 
@@ -169,12 +180,12 @@
 - `GET    /v2/regions/{regionId}` — Информация о регионе [fby,fbs,dbs,express,laas]
 - `GET    /v2/regions/{regionId}/children` — Информация о дочерних регионах [fby,fbs,dbs,express,laas]
 
-## warehouses (4)
+## stocks (4)
 
-- `GET    /v2/businesses/{businessId}/warehouses` — Список складов и групп складов [fbs,dbs,express] ⚠️ deprecated
-- `POST   /v2/businesses/{businessId}/warehouses` — Список складов [fbs,dbs,express]
-- `POST   /v2/campaigns/{campaignId}/warehouse/status` — Изменение статуса склада [fbs,dbs,express]
-- `GET    /v2/warehouses` — Идентификаторы фулфилмент-складов Маркета [fby,laas]
+- `POST   /v2/campaigns/{campaignId}/offers/stocks` — Информация об остатках и оборачиваемости [fby,fbs,dbs,express,laas]
+- `PUT    /v2/campaigns/{campaignId}/offers/stocks` — Передача информации об остатках [fbs,dbs,express]
+- `POST   /v3/businesses/{businessId}/offers/stocks` — Информация об остатках [fbs,dbs,express]
+- `POST   /v3/businesses/{businessId}/offers/stocks/update` — Передача информации об остатках [fbs,dbs,express]
 
 ## campaigns (3)
 
@@ -237,11 +248,6 @@
 
 - `POST   /v2/businesses/{businessId}/ratings/quality` — Индекс качества магазинов [fby,fbs,dbs,express]
 - `POST   /v2/campaigns/{campaignId}/ratings/quality/details` — Заказы, которые повлияли на индекс качества [fbs,dbs,express]
-
-## stocks (2)
-
-- `POST   /v2/campaigns/{campaignId}/offers/stocks` — Информация об остатках и оборачиваемости [fby,fbs,dbs,express,laas]
-- `PUT    /v2/campaigns/{campaignId}/offers/stocks` — Передача информации об остатках [fbs,dbs,express]
 
 ## auth (1)
 

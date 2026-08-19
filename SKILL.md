@@ -1,11 +1,11 @@
 ---
 name: yandex-market-api
-description: Use when the user works with Yandex Market (Яндекс Маркет) as a seller via API — карточки каталога, цены, остатки, заказы FBS/FBY/DBS/Express, отгрузки, возвраты, акции, ставки, отчёты, чаты, отзывы. Triggers: "Yandex Market API", "API Яндекс Маркета", "заказы/остатки на маркете", "businessId", "campaignId", api.partner.market.yandex.ru.
+description: 'Use for seller integrations with Yandex Market (Яндекс Маркет): catalog, prices, stocks, orders, warehouses, returns, reports, and buyer communication. Triggers include "Yandex Market API", "API Яндекс Маркета", "остатки на Маркете", businessId, campaignId, and api.partner.market.yandex.ru.'
 ---
 
 # Yandex Market Partner API
 
-This skill helps you call the Yandex Market Partner API (`https://api.partner.market.yandex.ru`). It bundles the full OpenAPI 3.0 spec from the **official repository** (`github.com/yandex-market/yandex-market-partner-api`) — 149 paths / 159 operations.
+This skill helps you call the Yandex Market Partner API (`https://api.partner.market.yandex.ru`). It bundles the full OpenAPI 3.0 spec from the **official repository** (`github.com/yandex-market/yandex-market-partner-api`) — 155 paths / 165 operations.
 
 The spec is ~1.4 MB. Don't read it whole — use the helpers described below to pull only what you need.
 
@@ -31,6 +31,16 @@ Two different identifiers route every request:
 - **`campaignId`** — one store = one placement model inside the cabinet. Paths like `/v2/campaigns/{campaignId}/...` operate per-store: orders, stocks, store prices, shipments, outlets.
 
 Get both from `GET /v2/campaigns` (each campaign carries its `business.id`). **`campaignId` is NOT the «номер магазина» shown in the cabinet UI** — the cabinet shows it under Настройки → API и модули → «Идентификатор кампании». Passing a shop number where a campaignId is expected yields 404/403.
+
+### Warehouse groups choose the stocks API version
+
+For FBS, DBS, and Express, first establish whether the cabinet uses **warehouse groups**:
+
+- **No warehouse groups:** use business-level `POST /v3/businesses/{businessId}/warehouses`, `/offers/stocks`, and `/offers/stocks/update`. These methods address a concrete `partnerWarehouseId` and do not support grouped warehouses.
+- **Warehouse groups exist:** use `POST /v2/businesses/{businessId}/warehouses` to inspect them and the campaign-level `POST`/`PUT /v2/campaigns/{campaignId}/offers/stocks` methods. Updating one warehouse in a group updates the shared group stock according to Market's rules.
+- **FBY or LaaS:** use the applicable `v2` stock and Market-warehouse methods; the new partner-warehouse `v3` methods are only tagged for FBS, DBS, and Express.
+
+Do not choose `v2` versus `v3` from the version number alone. Search the operation and read its description: the two contours coexist because their warehouse models differ.
 
 ## How to find the right endpoint — DO THIS FIRST
 
@@ -83,10 +93,15 @@ curl -s -X POST "https://api.partner.market.yandex.ru/v2/businesses/$BUSINESS_ID
   -H "Api-Key: $YM_API_KEY" -H "Content-Type: application/json" \
   -d '{}' | jq .
 
-# example: update stocks for a store
+# example: update stocks when the cabinet HAS warehouse groups
 curl -s -X PUT "https://api.partner.market.yandex.ru/v2/campaigns/$CAMPAIGN_ID/offers/stocks" \
   -H "Api-Key: $YM_API_KEY" -H "Content-Type: application/json" \
   -d '{"skus":[{"sku":"АРТИКУЛ-1","items":[{"count":10}]}]}' | jq .
+
+# example: update stocks when the cabinet has NO warehouse groups
+curl -s -X POST "https://api.partner.market.yandex.ru/v3/businesses/$BUSINESS_ID/offers/stocks/update" \
+  -H "Api-Key: $YM_API_KEY" -H "Content-Type: application/json" \
+  -d '{"skuItems":[{"sku":"АРТИКУЛ-1","partnerWarehouseId":123456,"count":10}]}' | jq .
 ```
 
 For Python, use `requests`/`httpx` with the same header. No SDK needed — every endpoint is a plain JSON HTTP call.
@@ -94,7 +109,7 @@ For Python, use `requests`/`httpx` with the same header. No SDK needed — every
 ## Conventions and gotchas
 
 - **Base URL** is `https://api.partner.market.yandex.ru` (no trailing slash). Paths from the spec are appended directly.
-- **Mixed HTTP verbs**: 107 POST / 35 GET / 15 PUT / 2 DELETE. Many reads are POST because filters go in the body. Check the method with `show`, don't assume.
+- **Mixed HTTP verbs**: 113 POST / 35 GET / 15 PUT / 2 DELETE. Many reads are POST because filters go in the body. Check the method with `show`, don't assume.
 - **Pagination is cursor-based**: query params `pageToken` + `limit`, response carries `paging.nextPageToken`. The older `page`/`pageSize` params are deprecated — don't use them in new code. `limit` often has **no default**: omitting it can change response shape or return everything.
 - **`sku` here means the seller's own offer ID** (ваш SKU/артикул), not a marketplace-generated ID. Market's own card ID is `marketSku` where it appears.
 - **Deprecated methods** are flagged in `search`/`show`/`index.md`; the successor is named in the `description`. Several high-traffic paths are deprecated (orders listing per campaign → business-level `POST /v1/businesses/{businessId}/orders`), so check before reusing old integration patterns.
@@ -126,13 +141,13 @@ Functional tags sorted by endpoint count (model tags fbs/fby/dbs/express/laas ex
 
 | Section | # | Notes |
 |---|---:|---|
-| reports | 26 | Генерация отчётов (цены, остатки, продажи, юнит-экономика): `POST .../generate` → poll `GET /v2/reports/info/{reportId}` → download |
+| reports | 27 | Генерация отчётов (цены, остатки, продажи, юнит-экономика): `POST .../generate` → poll `GET /v2/reports/info/{reportId}` → download |
 | orders | 16 | Заказы: campaign-level CRUD статусов + business-level список |
 | shipments | 12 | Отгрузки FBS: ярлыки, акты, паллеты |
 | returns | 9 | Возвраты и невыкупы |
 | chats | 7 | Чаты с покупателями: сообщения, файлы |
 | business-offer-mappings | 6 | Карточки каталога (business-level): список, добавление/правка, удаление |
-| goods-feedback | 5 | Отзывы на товары + комментарии |
+| goods-feedback | 6 | Отзывы на товары + комментарии, включая отзывы для рекламодателей |
 | order-delivery | 5 | Трекинг, коробки, сроки доставки |
 | outlets | 5 | Точки продаж (DBS/самовывоз) |
 | prices | 5 | Цены: business- и campaign-level, карантин цен рядом (`price-quarantine`, 4) |
@@ -140,8 +155,8 @@ Functional tags sorted by endpoint count (model tags fbs/fby/dbs/express/laas ex
 | offers | 4 | Campaign-level список товаров, скрытие (`hidden-offers`, 3) |
 | promos | 4 | Акции Маркета: список, вход/выход |
 | regions | 4 | Справочник регионов |
-| warehouses | 4 | Склады FBY и свои |
-| stocks | 2 | Остатки: PUT по складу кампании |
+| warehouses | 6 | Склады и модели работы; `v2` для групп складов, `v3` для отдельных партнерских складов |
+| stocks | 4 | Получение и передача остатков; выбор `v2`/`v3` зависит от групп складов |
 | supply-requests | 3 | Заявки на поставку FBY |
 | goods-questions | 3 | Вопросы и ответы о товарах |
 | content | 3 | Контент карточек: категории, характеристики (`categories`, 2 рядом) |
@@ -153,5 +168,6 @@ Functional tags sorted by endpoint count (model tags fbs/fby/dbs/express/laas ex
 - If the user's request maps to one obvious endpoint, look it up, show them the call you're about to make (URL, method, body), and execute when they confirm.
 - If the request is ambiguous (e.g. "обнови цены" — business-level for all stores or campaign-level for one?), `search` first and ask which they mean.
 - Start sessions with `GET /v2/campaigns` when IDs are unknown — it resolves both campaignId and businessId and shows the placement model of each store.
+- Before stock or partner-warehouse operations for FBS/DBS/Express, establish whether warehouse groups exist; that determines the `v2` or `v3` contour.
 - When credentials are missing, ask for `YM_API_KEY` and explain where to get it (кабинет → Настройки → API и модули). Don't fabricate test calls without credentials — prepare the curl/python command and let the user run it.
 - Watch out for endpoints that mutate state (цены, остатки, статусы заказов, отгрузки). Confirm with the user before sending — there is no sandbox.
